@@ -8,7 +8,7 @@ export default class Intro {
 		let style = { font: fontSize + "px monospace", fill: "#fff"};
     let text = 'Automata';
     let textSize = text.length * fontSize;
-		this.game.add.text(this.game.width/2 - textSize/3, this.game.height/2 - fontSize * 4, 'Automata', style);
+		this.game.add.text(this.game.width/2 - textSize/3, this.game.height/3 - fontSize * 4, 'Automata', style);
 		this.game.state.start('run');
 	}
 
