@@ -19,67 +19,128 @@ const PENTOMINO = [
 	[1, -1]
 ];
 
+const ACORN = [
+	[0, 0],
+	[1, 0],
+	[1, -2],
+	[3, -1],
+	[4, 0],
+	[5, 0],
+	[6, 0]
+];
+
+const LIVE = 'LIVE';
+const DEAD = 'DEAD';
+
+let makeCell = (x, y, state, neighbors=null) => {
+	return {x, y, state, neighbors};
+}
+
+Object.values = (obj) => {
+	return Object.keys(obj).map((key) => { return obj[key] });
+}
+
 export default class GameOfLife {
-	constructor(width, height) {
+	constructor(width, height, cells = {}, diff = null) {
 		this.width = width;
 		this.height = height;
-		this.grid = new Array2D(width, height);
-		this.grid.fill(GameOfLife.DEAD);
-		this.addShape(Math.floor(width/2), Math.floor(height/2), PENTOMINO);
+		this.cells = cells;
+		this.diff = diff;
 	} 
 
-	update() {
-		console.log('tick');
-		var _grid = new Array2D(this.width, this.height);
+	getDiff() {
+		return this.diff || Object.values(this.cells);
+	}
 
-		for (let x = 0; x < this.width; x++) {
-			for (let y = 0; y < this.height; y++) {
-				let c = this.grid.get(x, y);
-				let n = this.neighbors(x, y);
+	xytoi(x, y) {
+		return y * this.width + x;
+	}
 
-				if (c == GameOfLife.DEAD && n == 3) {
-					_grid.set(x, y, GameOfLife.LIVE)
+	tick() {
+		let cells = this.cells;
+		let diff = [];
+		let workingSet = {};
+		let newCells = {};
+
+		let touchCell = (x, y) => {
+			if (x > 0 && x < this.width && y > 0 && y < this.height) {
+				let idx = this.xytoi(x, y)
+				if (!workingSet[idx]) {
+					workingSet[idx] = makeCell(x, y, cells[idx] ? LIVE : DEAD, 0);
 				}
-
-				else if (c == GameOfLife.LIVE && (n < 2 || n > 3)) {
-					_grid.set(x, y, GameOfLife.DEAD)
-				}
-
-				else {
-					_grid.set(x, y, c);
-				}
+				workingSet[idx].neighbors += 1;
 			}
 		}
 
-		this.grid = _grid;
-	}
+		let touchNeighbors = (cell) => {
+			NEIGHBORS.forEach((delta) => {
+				let [dx, dy] = delta;
+				touchCell(cell.x + dx, cell.y + dy);
+			});
+		}
 
-	neighbors(x, y) {
-		let n = 0;
+		let pushLive = (x, y) => {
+			newCells[this.xytoi(x, y)] = makeCell(x, y, LIVE);
+		}
 
-		NEIGHBORS.forEach((pair) => {
-			let [dx, dy] = pair;
-			if (this.grid.get(x + dx, y + dy) == GameOfLife.LIVE) {
-				n++;
+		let pushChange = (x, y, state) => {
+			diff.push(makeCell(x, y, state));
+		}
+
+		// create the set of all cells with 1 or more neighbors
+
+		Object.values(cells).forEach((cell) => {
+			touchNeighbors(cell);
+		})
+
+		// calculate the new set of live cells and the collection of cells that have changed
+
+		Object.values(workingSet).forEach((cell) => {
+			if (cell.state == DEAD && cell.neighbors == 3) {
+				pushChange(cell.x, cell.y, GameOfLife.LIVE);
+				pushLive(cell.x, cell.y);
 			}
-		});
 
-		return n;
+			else if (cell.state == LIVE) {
+				if (cell.neighbors < 2 || cell.neighbors > 3) {
+					pushChange(cell.x, cell.y, GameOfLife.DEAD);
+				}
+
+				else {
+					pushLive(cell.x, cell.y);
+				}
+			}
+		})
+
+		return new GameOfLife(
+			this.width,
+			this.height,
+			newCells,
+			diff
+		);
+
 	}
 
 	addShape(x, y, deltas) {
 		deltas.forEach((pair) => {
 			let [dx, dy] = pair;
-			this.grid.set(x+dx, y+dy, GameOfLife.LIVE);
-		})
+			let nx = x + dx;
+			let ny = y + dy;
+			let idx = this.xytoi(nx, ny);
+			this.cells[idx] = makeCell(nx, ny, LIVE);
+		});
 	} 
 
 	addPentomino(x, y) {
 		this.addShape(x, y, PENTOMINO);
 	}
+
+	addAcorn(x, y) {
+		this.addShape(x, y, ACORN);
+	}
 }
 
-GameOfLife.DEAD = 1
-GameOfLife.LIVE = 2
+GameOfLife.DEAD = LIVE;
+GameOfLife.LIVE = DEAD;
 
 window.GOL = GameOfLife;
