@@ -1,8 +1,7 @@
 import FasterGameOfLife from './FasterGameOfLife';
 import Array2D from './Array2D';
 
-const fontSize = 8;
-const style = {font: fontSize + "px monospace", fill: "#fff"}
+const textureSize = 2;
 
 export default class Run {
 	preload() {
@@ -10,8 +9,8 @@ export default class Run {
 	}
 
 	create() {
-		this.screenWidth = Math.floor(this.game.width / fontSize);
-		this.screenHeight = Math.floor(this.game.height / fontSize);
+		this.screenWidth = Math.floor(this.game.width / textureSize);
+		this.screenHeight = Math.floor(this.game.height / textureSize);
 
 		window.simulation = this.simulation = new FasterGameOfLife();
 
@@ -20,25 +19,25 @@ export default class Run {
 		
 		this.simulation.addAcorn(cx, cy);
 
-		this.screen = new Array2D(this.screenWidth, this.screenHeight);
-		for (let x = 0; x<this.screenWidth; x++) {
-			for (let y = 0; y<this.screenHeight; y++) {
-				this.screen.set(x, y, this.game.add.text(x * fontSize, y * fontSize, ' ', style));
-			}
-		}
+		this.liveTexture = this.game.add.bitmapData(textureSize, textureSize);
+		this.liveTexture.fill(220, 20, 20, 1);
+
+		this.deadTexture = this.game.add.bitmapData(textureSize, textureSize);
+		this.deadTexture.fill(0, 0, 0, 1);
+		
+		this.millisPerTick = 140;
+		this.millisSinceLastTick = 0;
 
 		this.draw();
-
-		console.log(simulation);
-
 	}
 
 	update() {
-		this.simulation.tick();
-		this.draw();
-		// this.simulation.tick();
-		// console.log(this.simulation);
-		// this.draw();
+		this.millisSinceLastTick += this.game.time.elapsed;
+		if (this.millisSinceLastTick >= this.millisPerTick) {
+			this.millisSinceLastTick = 0;
+			this.simulation.tick();
+			this.draw();
+		}
 	}
 
 	draw() {
@@ -53,13 +52,13 @@ export default class Run {
 
 		diff.live.forEach((cell) => {
 			if (inBounds(cell)) {
-				this.screen.get(cell.x, cell.y).setText('*');
+				this.game.add.sprite(cell.x * textureSize, cell.y * textureSize, this.liveTexture);
 			} 
 		})
 
 		diff.dead.forEach((cell) => {
 			if (inBounds(cell)) {
-				this.screen.get(cell.x, cell.y).setText(' ');
+				this.game.add.sprite(cell.x * textureSize, cell.y * textureSize, this.deadTexture);
 			}
 		})
 

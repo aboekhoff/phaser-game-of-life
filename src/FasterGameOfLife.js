@@ -116,7 +116,6 @@ export default class FasterGameOfLife {
 		deltas.forEach((delta) => {
 			let [dx, dy] = delta;
 			let cell = new Cell(x + dx, y + dy);
-			console.log(delta, dx, dy, cell);
 			this.cells.push(cell);
 			this.cellIndex[cell] = true;
 		})
