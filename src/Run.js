@@ -1,7 +1,7 @@
 import FasterGameOfLife from './FasterGameOfLife';
 import Array2D from './Array2D';
 
-const fontSize = 4;
+const fontSize = 8;
 const style = {font: fontSize + "px monospace", fill: "#fff"}
 
 export default class Run {
@@ -29,19 +29,16 @@ export default class Run {
 
 		this.draw();
 
-		this.millisPerTick = 140;
-		this.elapsedTime = 0;
+		console.log(simulation);
 
 	}
 
 	update() {
-		this.elapsedTime += this.game.time.elapsed;
-		if (this.elapsedTime >= this.millisPerTick) {
-			this.simulation.tick();
-			this.elapsedTime = 0;
-			this.draw();
-		}
-		
+		this.simulation.tick();
+		this.draw();
+		// this.simulation.tick();
+		// console.log(this.simulation);
+		// this.draw();
 	}
 
 	draw() {

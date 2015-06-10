@@ -30,12 +30,13 @@ class Cell {
 
 export default class FasterGameOfLife {
 	constructor() {
+		this.diff = null;
+		this.cells = [];
 		this.cellIndex = {};
-		this.diff = {live: [], dead: []}
 	}
 
 	getDiff() {
-		return this.diff;
+		return this.diff || {live: this.cells, dead: []}
 	}
 
 	neighborhoodOf(cell) {
@@ -61,7 +62,7 @@ export default class FasterGameOfLife {
 		return index;
 	}
 
-	isLive(cell) {
+	isAlive(cell) {
 		return this.cellIndex[cell];
 	}
 
@@ -91,10 +92,8 @@ export default class FasterGameOfLife {
 			dead: []
 		}
 
-		let workingSet = this.getWorkingSet();
-
-		workingSet.forEach((cell) => {
-			let isLive = this.isLive(cell);
+		this.getWorkingSet().forEach((cell) => {
+			let isLive = this.isAlive(cell);
 			let willLive = this.willLive(cell);
 			if (willLive) {
 				newCells.push(cell);
@@ -107,6 +106,7 @@ export default class FasterGameOfLife {
 			}
 		})
 
+		this.cells = newCells;
 		this.cellIndex = newCellIndex;
 		this.diff = diff;
 
@@ -116,6 +116,7 @@ export default class FasterGameOfLife {
 		deltas.forEach((delta) => {
 			let [dx, dy] = delta;
 			let cell = new Cell(x + dx, y + dy);
+			console.log(delta, dx, dy, cell);
 			this.cells.push(cell);
 			this.cellIndex[cell] = true;
 		})
@@ -145,7 +146,7 @@ const TABLE = (() => {
 			n = n >> 1;
 		}
 
-		cell = (n & 1);
+		cell = n & 1;
 		n = n >> 1;
 
 		for (let i=0; i<4; i++) {
