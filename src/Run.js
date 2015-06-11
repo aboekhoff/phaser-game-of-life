@@ -59,17 +59,19 @@ export default class Run {
 
 		let diff = this.simulation.getDiff();
 
-		diff.live.forEach((cell) => {
+		for (let i=0, ii=diff.live.length; i++) {
+			let cell = diff.live[i];
 			if (inBounds(cell)) {
 				this.screen.setPixel(cell.x, cell.y, 200, 20, 20, 1);
 			}
-		})
+		}
 
-		diff.dead.forEach((cell) => {
+		for (let i=0, ii=diff.dead.length; i++) {
+			let cell = diff.dead[i];
 			if (inBounds(cell)) {
 				this.screen.setPixel(cell.x, cell.y, 0, 0, 0, 1);
 			}
-		})
+		}
 
 	}
 }
