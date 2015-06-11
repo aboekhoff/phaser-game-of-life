@@ -1,7 +1,10 @@
 import FasterGameOfLife from './FasterGameOfLife';
 import Array2D from './Array2D';
 
-const textureSize = 2;
+const SIZE = 8;
+const WORKING_COLOR = 0x222222;
+const LIVE_COLOR = 0xAA2222;
+const DEAD_COLOR = 0x000000;
 
 export default class Run {
 	preload() {
@@ -9,8 +12,10 @@ export default class Run {
 	}
 
 	create() {
-		this.screenWidth = Math.floor(this.game.width / textureSize);
-		this.screenHeight = Math.floor(this.game.height / textureSize);
+		console.log('run');
+
+		this.screenWidth = Math.floor(this.game.width / SIZE);
+		this.screenHeight = Math.floor(this.game.height / SIZE);
 
 		window.simulation = this.simulation = new FasterGameOfLife();
 
@@ -19,16 +24,13 @@ export default class Run {
 		
 		this.simulation.addAcorn(cx, cy);
 
-		this.liveTexture = this.game.add.bitmapData(textureSize, textureSize);
-		this.liveTexture.fill(220, 20, 20, 1);
+		this.game.add.sprite(0, 0, this.screen);
 
-		this.deadTexture = this.game.add.bitmapData(textureSize, textureSize);
-		this.deadTexture.fill(0, 0, 0, 1);
-		
-		this.millisPerTick = 140;
+		this.millisPerTick = 125;
 		this.millisSinceLastTick = 0;
 
-		this.draw();
+		this.gfx = this.game.add.graphics(0, 0);
+
 	}
 
 	update() {
@@ -50,15 +52,19 @@ export default class Run {
 
 		let diff = this.simulation.getDiff();
 
-		diff.live.forEach((cell) => {
-			if (inBounds(cell)) {
-				this.game.add.sprite(cell.x * textureSize, cell.y * textureSize, this.liveTexture);
-			} 
-		})
-
 		diff.dead.forEach((cell) => {
 			if (inBounds(cell)) {
-				this.game.add.sprite(cell.x * textureSize, cell.y * textureSize, this.deadTexture);
+				this.gfx.beginFill(DEAD_COLOR);
+				this.gfx.drawRect(cell.x * SIZE, cell.y * SIZE, SIZE, SIZE);
+				this.gfx.endFill();
+			}
+		})
+
+		diff.live.forEach((cell) => {
+			if (inBounds(cell)) {
+				this.gfx.beginFill(LIVE_COLOR);
+				this.gfx.drawRect(cell.x * SIZE, cell.y * SIZE, SIZE, SIZE);
+				this.gfx.endFill();
 			}
 		})
 
