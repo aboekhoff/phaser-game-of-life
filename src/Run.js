@@ -1,7 +1,7 @@
 import FasterGameOfLife from './FasterGameOfLife';
 import Array2D from './Array2D';
 
-const SIZE = 8;
+const SCALE = 6;
 const WORKING_COLOR = 0x222222;
 const LIVE_COLOR = 0xAA2222;
 const DEAD_COLOR = 0x000000;
@@ -14,30 +14,37 @@ export default class Run {
 	create() {
 		console.log('run');
 
-		this.screenWidth = Math.floor(this.game.width / SIZE);
-		this.screenHeight = Math.floor(this.game.height / SIZE);
+		this.screenWidth = Math.floor(this.game.width / SCALE);
+		this.screenHeight = Math.floor(this.game.height / SCALE);
+		this.screen = this.game.add.bitmapData(this.screenWidth, this.screenHeight);
 
 		window.simulation = this.simulation = new FasterGameOfLife();
 
 		let cx = Math.floor(this.screenWidth/2);
 		let cy = Math.floor(this.screenHeight/2);
-		
 		this.simulation.addAcorn(cx, cy);
+		
+		this.screen.addToWorld(0, 0, 0, 0, SCALE, SCALE);
 
-		this.game.add.sprite(0, 0, this.screen);
-
-		this.millisPerTick = 125;
+		this.targetFPS = 10;
+		this.millisPerTick = 1000 / this.targetFPS;
 		this.millisSinceLastTick = 0;
+		this.ticked = false;
 
-		this.gfx = this.game.add.graphics(0, 0);
+		this.draw();
 
 	}
 
 	update() {
+		if (!this.ticked) { 
+			this.simulation.tick();
+			this.ticked = true;
+		}
+
 		this.millisSinceLastTick += this.game.time.elapsed;
 		if (this.millisSinceLastTick >= this.millisPerTick) {
 			this.millisSinceLastTick = 0;
-			this.simulation.tick();
+			this.ticked = false;
 			this.draw();
 		}
 	}
@@ -52,19 +59,15 @@ export default class Run {
 
 		let diff = this.simulation.getDiff();
 
-		diff.dead.forEach((cell) => {
+		diff.live.forEach((cell) => {
 			if (inBounds(cell)) {
-				this.gfx.beginFill(DEAD_COLOR);
-				this.gfx.drawRect(cell.x * SIZE, cell.y * SIZE, SIZE, SIZE);
-				this.gfx.endFill();
+				this.screen.setPixel(cell.x, cell.y, 200, 20, 20, 1);
 			}
 		})
 
-		diff.live.forEach((cell) => {
+		diff.dead.forEach((cell) => {
 			if (inBounds(cell)) {
-				this.gfx.beginFill(LIVE_COLOR);
-				this.gfx.drawRect(cell.x * SIZE, cell.y * SIZE, SIZE, SIZE);
-				this.gfx.endFill();
+				this.screen.setPixel(cell.x, cell.y, 0, 0, 0, 1);
 			}
 		})
 
