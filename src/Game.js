@@ -1,4 +1,4 @@
-let game = new Phaser.Game(1000, 800, Phaser.AUTO);
+let game = new Phaser.Game(1400, 800, Phaser.AUTO);
 
 import Boot from './Boot';
 import Preload from './Preload';
